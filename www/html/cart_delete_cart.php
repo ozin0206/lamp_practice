@@ -5,7 +5,13 @@ require_once MODEL_PATH . 'user.php';
 require_once MODEL_PATH . 'item.php';
 require_once MODEL_PATH . 'cart.php';
 
+header('X-FRAME-OPTIONS: DENY');
 session_start();
+
+header('X-FRAME-OPTIONS: DENY');
+if (is_valid_csrf_token($_POST['csrf_token']) === false){
+  redirect_to(LOGIN_URL);
+}
 
 if(is_logined() === false){
   redirect_to(LOGIN_URL);
