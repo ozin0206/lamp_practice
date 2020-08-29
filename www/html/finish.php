@@ -4,8 +4,10 @@ require_once MODEL_PATH . 'functions.php';
 require_once MODEL_PATH . 'user.php';
 require_once MODEL_PATH . 'item.php';
 require_once MODEL_PATH . 'cart.php';
+require_once MODEL_PATH . 'orders.php';
 
 session_start();
+
 
 if(is_logined() === false){
   redirect_to(LOGIN_URL);
@@ -21,6 +23,12 @@ if(purchase_carts($db, $carts) === false){
   redirect_to(CART_URL);
 } 
 
+insert_orders ($db,$user['user_id']);
+$order_id = $db->lastInsertId();
+
+insert_order_details($db,$carts,$order_id);
+
 $total_price = sum_carts($carts);
+
 
 include_once '../view/finish_view.php';

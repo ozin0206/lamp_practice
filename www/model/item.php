@@ -16,10 +16,10 @@ function get_item($db, $item_id){
     FROM
       items
     WHERE
-      item_id = {$item_id}
-  ";
-
-  return fetch_query($db, $sql);
+    item_id = ?
+    ";
+          
+  return fetch_query($db, $sql,array($item_id));
 }
 
 function get_items($db, $is_open = false){
@@ -43,12 +43,38 @@ function get_items($db, $is_open = false){
   return fetch_all_query($db, $sql);
 }
 
+function get_rank($db){
+  $sql = '
+    SELECT
+      items.item_id, 
+      name,
+      stock,
+      items.price,
+      image,
+      status,
+      sum(amount) as a
+    FROM
+      items
+      join order_details
+      on items.item_id=order_details.item_id
+      where status = 1
+      group by items.item_id
+      order by a desc
+      limit 3
+  ';
+  return fetch_all_query($db, $sql);
+}
+//すべての商品
 function get_all_items($db){
   return get_items($db);
 }
 
 function get_open_items($db){
   return get_items($db, true);
+}
+
+function get_ranking($db){
+  return get_rank($db, true);
 }
 
 function regist_item($db, $name, $price, $stock, $status, $image){
@@ -82,24 +108,24 @@ function insert_item($db, $name, $price, $stock, $filename, $status){
         image,
         status
       )
-    VALUES('{$name}', {$price}, {$stock}, '{$filename}', {$status_value});
+    VALUES(?,?,?,?,?);
   ";
 
-  return execute_query($db, $sql);
+  return execute_query($db, $sql,array($name,$price,$stock,$filename,$status_value));
 }
-
+//ストック数変更
 function update_item_status($db, $item_id, $status){
   $sql = "
     UPDATE
       items
     SET
-      status = {$status}
+      status = ?
     WHERE
-      item_id = {$item_id}
+      item_id = ?
     LIMIT 1
   ";
   
-  return execute_query($db, $sql);
+  return execute_query($db, $sql,array($status,$item_id));
 }
 
 function update_item_stock($db, $item_id, $stock){
@@ -107,13 +133,13 @@ function update_item_stock($db, $item_id, $stock){
     UPDATE
       items
     SET
-      stock = {$stock}
+      stock = ?
     WHERE
-      item_id = {$item_id}
+      item_id = ?
     LIMIT 1
   ";
-  
-  return execute_query($db, $sql);
+
+  return execute_query($db, $sql,array($stock,$item_id));
 }
 
 function destroy_item($db, $item_id){
@@ -130,17 +156,17 @@ function destroy_item($db, $item_id){
   $db->rollback();
   return false;
 }
-
+//商品削除
 function delete_item($db, $item_id){
   $sql = "
     DELETE FROM
       items
     WHERE
-      item_id = {$item_id}
+      item_id = ?
     LIMIT 1
   ";
   
-  return execute_query($db, $sql);
+  return execute_query($db, $sql,array($item_id));
 }
 
 

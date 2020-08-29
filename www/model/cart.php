@@ -1,7 +1,7 @@
 <?php 
 require_once MODEL_PATH . 'functions.php';
 require_once MODEL_PATH . 'db.php';
-
+//今ログインしているユーザーのカートの中身を取得する
 function get_user_carts($db, $user_id){
   $sql = "
     SELECT
@@ -21,11 +21,11 @@ function get_user_carts($db, $user_id){
     ON
       carts.item_id = items.item_id
     WHERE
-      carts.user_id = {$user_id}
+      carts.user_id = ?
   ";
-  return fetch_all_query($db, $sql);
+  return fetch_all_query($db, $sql,array($user_id));
 }
-
+//ログインしてるユーザーの個々の商品を取り出す
 function get_user_cart($db, $user_id, $item_id){
   $sql = "
     SELECT
@@ -45,23 +45,23 @@ function get_user_cart($db, $user_id, $item_id){
     ON
       carts.item_id = items.item_id
     WHERE
-      carts.user_id = {$user_id}
+      carts.user_id = ?
     AND
-      items.item_id = {$item_id}
+      items.item_id = ?
   ";
-
-  return fetch_query($db, $sql);
+  //DBから読み込む
+  return fetch_query($db, $sql,array($user_id,$item_id));
 
 }
-
+//カートに情報登録
 function add_cart($db, $user_id, $item_id ) {
   $cart = get_user_cart($db, $user_id, $item_id);
   if($cart === false){
-    return insert_cart($db, $user_id, $item_id);
+    return insert_cart($db, $user_id, $item_id);//カートに追加挿入
   }
-  return update_cart_amount($db, $cart['cart_id'], $cart['amount'] + 1);
+  return update_cart_amount($db, $cart['cart_id'], $cart['amount'] + 1);//カートに追加した分プラス1
 }
-
+//カートに追加挿入
 function insert_cart($db, $user_id, $item_id, $amount = 1){
   $sql = "
     INSERT INTO
@@ -70,10 +70,9 @@ function insert_cart($db, $user_id, $item_id, $amount = 1){
         user_id,
         amount
       )
-    VALUES({$item_id}, {$user_id}, {$amount})
+    VALUES(?,?,?)
   ";
-
-  return execute_query($db, $sql);
+  return execute_query($db, $sql,array($item_id,$user_id,$amount));
 }
 
 function update_cart_amount($db, $cart_id, $amount){
@@ -81,14 +80,14 @@ function update_cart_amount($db, $cart_id, $amount){
     UPDATE
       carts
     SET
-      amount = {$amount}
+      amount = ?
     WHERE
-      cart_id = {$cart_id}
+      cart_id = ?
     LIMIT 1
   ";
-  return execute_query($db, $sql);
+  return execute_query($db, $sql,array($amount,$cart_id));
 }
-
+//購入したらカートから商品削除
 function delete_cart($db, $cart_id){
   $sql = "
     DELETE FROM
@@ -100,7 +99,7 @@ function delete_cart($db, $cart_id){
 
   return execute_query($db, $sql);
 }
-
+//購入
 function purchase_carts($db, $carts){
   if(validate_cart_purchase($carts) === false){
     return false;
@@ -114,7 +113,7 @@ function purchase_carts($db, $carts){
       set_error($cart['name'] . 'の購入に失敗しました。');
     }
   }
-  
+  //購入したらカートから削除
   delete_user_carts($db, $carts[0]['user_id']);
 }
 
@@ -123,10 +122,10 @@ function delete_user_carts($db, $user_id){
     DELETE FROM
       carts
     WHERE
-      user_id = {$user_id}
+      user_id = ?
   ";
 
-  execute_query($db, $sql);
+  execute_query($db, $sql,array($user_id));
 }
 
 

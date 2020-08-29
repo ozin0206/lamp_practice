@@ -15,7 +15,7 @@ function get_db_connect(){
   }
   return $dbh;
 }
-
+//ＳＱＬ読み込み
 function fetch_query($db, $sql, $params = array()){
   try{
     $statement = $db->prepare($sql);
@@ -26,7 +26,7 @@ function fetch_query($db, $sql, $params = array()){
   }
   return false;
 }
-
+//すべて読み込む
 function fetch_all_query($db, $sql, $params = array()){
   try{
     $statement = $db->prepare($sql);

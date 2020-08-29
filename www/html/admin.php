@@ -4,7 +4,10 @@ require_once MODEL_PATH . 'functions.php';
 require_once MODEL_PATH . 'user.php';
 require_once MODEL_PATH . 'item.php';
 
+header('X-FRAME-OPTIONS: DENY');
 session_start();
+
+$token = get_csrf_token();
 
 if(is_logined() === false){
   redirect_to(LOGIN_URL);
